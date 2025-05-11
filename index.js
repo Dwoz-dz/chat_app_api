@@ -1,7 +1,9 @@
+// index.js
 const express = require('express');
-const http = require('http');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -9,9 +11,6 @@ const usersRoutes = require('./routes/users');
 
 const app = express();
 const server = http.createServer(app);
-const { Server } = require('socket.io');
-
-// إعداد socket.io
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -19,33 +18,35 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 5001;
-
-// middlewares
+// ========== Middlewares ==========
 app.use(cors());
 app.use(bodyParser.json());
 
-// routes
+// ========== API Routes ==========
 app.use('/api', authRoutes);
 app.use('/api', usersRoutes);
 
-// socket.io events
+// ========== WebSocket ==========
 io.on('connection', (socket) => {
-  console.log(`⚡️ مستخدم متصل: ${socket.id}`);
+  console.log('🟢 مستخدم اتصل عبر WebSocket');
 
-  socket.on('send_message', (data) => {
-    io.emit('receive_message', data);
+  socket.on('chat_message', (msg) => {
+    console.log('📩 رسالة:', msg);
+    io.emit('chat_message', msg); // إرسال للجميع
   });
 
   socket.on('disconnect', () => {
-    console.log(`⛔️ مستخدم قطع الاتصال: ${socket.id}`);
+    console.log('🔴 المستخدم قطع الاتصال');
   });
 });
 
+// ========== Test Route ==========
 app.get('/', (req, res) => {
-  res.send('✅ API و Socket.io راهي خدامة');
+  res.send('✅ API راهي خدامة ومربوطة');
 });
 
-server.listen(PORT, () => {
-  console.log(`✅ Server خدام على http://localhost:${PORT}`);
+// ========== Start Server ==========
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ الخادم شغال على: http://localhost:${PORT}`);
 });

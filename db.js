@@ -1,12 +1,10 @@
 // db.js
 const { Pool } = require('pg');
+require('dotenv').config();
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'chat_app_db',
-  password: 'Sn2008', // غيّرها إذا بدلتها من pgAdmin
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 module.exports = pool;
