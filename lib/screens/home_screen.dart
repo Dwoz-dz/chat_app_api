@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
-import '../config.dart';
+import '../core/config/app_config.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     if (username != null) {
       // طلب API لتسجيل الخروج في السيرفر
       await http.post(
-        Uri.parse('$apiBaseUrl/logout'),
+        Uri.parse('${AppConfig.apiUrl}/logout'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username}),
       );

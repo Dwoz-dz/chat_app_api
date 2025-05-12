@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
-import '../config.dart';
+import '../core/config/app_config.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('$apiBaseUrl/api/register'),
+        Uri.parse('${AppConfig.apiUrl}/logout'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': _username.text.trim(),
@@ -41,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (response.statusCode == 201) {
         final loginResponse = await http.post(
-          Uri.parse('$apiBaseUrl/api/login'),
+          Uri.parse('${AppConfig.apiUrl}/logout'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'username': _username.text.trim(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chat_app_clean/features/chat/message_input.dart';
 import 'package:chat_app_clean/features/chat/message_bubble.dart';
 import 'package:chat_app_clean/features/chat/socket_service.dart';
+import 'package:chat_app_clean/core/config/app_config.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -12,13 +13,13 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, dynamic>> _messages = [];
+  final socketService = SocketService();
 
   @override
   void initState() {
     super.initState();
-    final socket = SocketService();
-    socket.connect();
-    socket.onMessage((message) {
+    socketService.connect(AppConfig.baseUrl); // ربط WebSocket
+    socketService.onMessage((message) {
       setState(() {
         _messages.add({'text': message, 'isMe': false});
       });
@@ -26,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _handleSend(String message) {
-    SocketService().sendMessage(message);
+    socketService.sendMessage(message);
     setState(() {
       _messages.add({'text': message, 'isMe': true});
     });
@@ -34,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    SocketService().disconnect();
+    socketService.disconnect();
     super.dispose();
   }
 
@@ -71,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
             ),
-            MessageInput(socket: SocketService().socket, onSend: _handleSend),
+            MessageInput(socket: socketService.socket!, onSend: _handleSend),
           ],
         ),
       ),

@@ -1,48 +1,33 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
-  static final SocketService _instance = SocketService._internal();
-  late IO.Socket _socket;
+  IO.Socket? socket;
 
-  factory SocketService() => _instance;
-
-  SocketService._internal();
-
-  IO.Socket get socket => _socket;
-
-  void connect() {
-    _socket = IO.io(
-      'https://YOUR_NGROK_URL_HERE/api', // غيّر هذا بـ ngrok أو رابط السيرفر
+  void connect(String url) {
+    socket = IO.io(
+      url,
       IO.OptionBuilder()
-          .setTransports(['websocket']) // ضروري
-          .enableAutoConnect()
+          .setTransports(['websocket']) // WebSocket protocol
+          .disableAutoConnect()
           .build(),
     );
 
-    _socket.onConnect((_) {
-      print('✅ Socket متصل!');
-    });
-
-    _socket.onDisconnect((_) {
-      print('❌ Socket انقطع!');
-    });
-
-    _socket.onError((data) {
-      print('⚠️ Socket Error: $data');
-    });
+    socket!.connect();
+    socket!.onConnect((_) => print('🟢 Connected to WebSocket'));
+    socket!.onDisconnect((_) => print('🔴 Disconnected from WebSocket'));
   }
 
   void sendMessage(String message) {
-    _socket.emit('chat_message', message);
+    socket?.emit('chat_message', message);
   }
 
   void onMessage(Function(String) callback) {
-    _socket.on('chat_message', (data) {
-      callback(data.toString());
+    socket?.on('chat_message', (data) {
+      callback(data);
     });
   }
 
   void disconnect() {
-    _socket.disconnect();
+    socket?.disconnect();
   }
 }

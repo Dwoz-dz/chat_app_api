@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../config.dart';
+import '../core/config/app_config.dart'; // لازم يكون فيه AppConfig.apiUrl
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -28,7 +28,7 @@ class _UsersScreenState extends State<UsersScreen> {
     });
 
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/users'));
+      final response = await http.get(Uri.parse('${AppConfig.apiUrl}/users'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -58,9 +58,9 @@ class _UsersScreenState extends State<UsersScreen> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/brp_bg.jpg'), // حط الصورة هنا
+            image: AssetImage('assets/images/brp_bg.jpg'),
             fit: BoxFit.cover,
-            opacity: 0.08, // خفيفة باش ما تغطيش النص
+            opacity: 0.08,
           ),
         ),
         child:
