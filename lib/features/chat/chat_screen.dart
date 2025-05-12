@@ -14,14 +14,30 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, dynamic>> _messages = [];
   final socketService = SocketService();
+  String? typingUser;
 
   @override
   void initState() {
     super.initState();
-    socketService.connect(AppConfig.baseUrl); // ربط WebSocket
+    socketService.connect();
+
     socketService.onMessage((message) {
       setState(() {
         _messages.add({'text': message, 'isMe': false});
+      });
+    });
+
+    socketService.onTyping((username) {
+      setState(() {
+        typingUser = username;
+      });
+
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() {
+            typingUser = null;
+          });
+        }
       });
     });
   }
@@ -30,6 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
     socketService.sendMessage(message);
     setState(() {
       _messages.add({'text': message, 'isMe': true});
+      typingUser = null;
     });
   }
 
@@ -72,6 +89,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
             ),
+            if (typingUser != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '$typingUser يكتب الآن...',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
             MessageInput(socket: socketService.socket!, onSend: _handleSend),
           ],
         ),

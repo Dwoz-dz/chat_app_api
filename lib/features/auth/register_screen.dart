@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home_screen.dart';
-import '../core/config/app_config.dart';
+import '../home/home_screen.dart';
+import '../../core/config/app_config.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.apiUrl}/logout'),
+        Uri.parse('${AppConfig.apiUrl}/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': _username.text.trim(),
@@ -41,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (response.statusCode == 201) {
         final loginResponse = await http.post(
-          Uri.parse('${AppConfig.apiUrl}/logout'),
+          Uri.parse('${AppConfig.apiUrl}/login'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'username': _username.text.trim(),
@@ -55,6 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', token);
+          await prefs.setString('username', loginData['user']['username']);
 
           if (!mounted) return;
           Navigator.pushAndRemoveUntil(
@@ -64,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         } else {
           setState(() {
-            _error = '✅ تم التسجيل، لكن الدخول التلقائي فشل';
+            _error = '✅ تم التسجيل، لكن فشل الدخول التلقائي';
           });
         }
       } else {
@@ -74,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = '❌ فشل الاتصال بالسيرفر';
+        _error = '❌ فشل الاتصال بالخادم';
       });
     } finally {
       setState(() {
@@ -89,7 +90,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/ic_logo_national_security.jpg'),
+            image: AssetImage('assets/images/brp_bg.jpg'),
             fit: BoxFit.cover,
             opacity: 0.15,
           ),

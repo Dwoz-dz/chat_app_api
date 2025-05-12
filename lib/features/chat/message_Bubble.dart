@@ -10,7 +10,9 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 280),
@@ -33,8 +35,15 @@ class MessageBubble extends StatelessWidget {
             bottomLeft: Radius.circular(isMe ? 14 : 0),
             bottomRight: Radius.circular(isMe ? 0 : 14),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        child: Text(
+        child: SelectableText(
           message,
           style: TextStyle(
             fontSize: 15,

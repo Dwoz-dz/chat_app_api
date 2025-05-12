@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MessageInput extends StatefulWidget {
   final IO.Socket socket;
@@ -13,14 +14,48 @@ class MessageInput extends StatefulWidget {
 
 class _MessageInputState extends State<MessageInput> {
   final _controller = TextEditingController();
+  bool _isTyping = false;
+  String username = 'مستخدم';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+  }
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      username = prefs.getString('username') ?? 'مستخدم';
+    });
+  }
 
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
     widget.socket.emit('chat_message', text);
-    widget.onSend(text); // تحديث فوري في الواجهة
+    widget.socket.emit('stop_typing', username);
+    widget.onSend(text);
     _controller.clear();
+    _isTyping = false;
+  }
+
+  void _handleTyping(String text) {
+    if (text.isNotEmpty && !_isTyping) {
+      widget.socket.emit('typing', username);
+      _isTyping = true;
+    } else if (text.isEmpty && _isTyping) {
+      widget.socket.emit('stop_typing', username);
+      _isTyping = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.socket.emit('stop_typing', username);
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,6 +79,7 @@ class _MessageInputState extends State<MessageInput> {
                 ),
               ),
               style: const TextStyle(color: Colors.white),
+              onChanged: _handleTyping,
               onSubmitted: (_) => _sendMessage(),
             ),
           ),

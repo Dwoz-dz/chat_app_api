@@ -1,4 +1,3 @@
-// index.js
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -14,25 +13,35 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
-    methods: ['GET', 'POST']
-  }
+    methods: ['GET', 'POST'],
+  },
 });
 
-// ========== Middlewares ==========
+// ===== Middlewares =====
 app.use(cors());
 app.use(bodyParser.json());
 
-// ========== API Routes ==========
+// ===== API Routes =====
 app.use('/api', authRoutes);
 app.use('/api', usersRoutes);
 
-// ========== WebSocket ==========
+// ===== WebSocket Events =====
 io.on('connection', (socket) => {
   console.log('🟢 مستخدم اتصل عبر WebSocket');
 
   socket.on('chat_message', (msg) => {
     console.log('📩 رسالة:', msg);
-    io.emit('chat_message', msg); // إرسال للجميع
+    io.emit('chat_message', msg);
+  });
+
+  socket.on('typing', (username) => {
+    console.log(`✍️ ${username} يكتب الآن...`);
+    socket.broadcast.emit('typing', username);
+  });
+
+  socket.on('stop_typing', (username) => {
+    console.log(`✋ ${username} توقف عن الكتابة`);
+    socket.broadcast.emit('stop_typing', username);
   });
 
   socket.on('disconnect', () => {
@@ -40,12 +49,12 @@ io.on('connection', (socket) => {
   });
 });
 
-// ========== Test Route ==========
+// ===== Test Route =====
 app.get('/', (req, res) => {
   res.send('✅ API راهي خدامة ومربوطة');
 });
 
-// ========== Start Server ==========
+// ===== Start Server =====
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ الخادم شغال على: http://localhost:${PORT}`);

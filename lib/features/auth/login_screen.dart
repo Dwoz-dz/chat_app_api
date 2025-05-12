@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/config/app_config.dart';
-import 'home_screen.dart';
-import 'register_screen.dart';
+import 'package:chat_app_clean/features/home/home_screen.dart';
+import 'package:chat_app_clean/features/auth/register_screen.dart';
+import 'package:chat_app_clean/features/chat/socket_service.dart';
+import 'package:chat_app_clean/core/config/app_config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.apiUrl}/logout'),
+        Uri.parse('${AppConfig.apiUrl}/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': _username.text.trim(),
@@ -40,11 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
+        await prefs.setString('username', data['user']['username']);
+
+        SocketService()
+            .connect(); // ما تحتاجش تمرر baseUrl، راه مدمج في service
 
         if (!mounted) return;
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
         );
       } else {
         setState(() {
@@ -53,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = '❌ فشل الاتصال بالخادم';
+        _error = '❌ تعذر الاتصال بالخادم';
       });
     } finally {
       setState(() {
@@ -65,20 +71,25 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F0FF),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/brp_bg.jpg'),
+            fit: BoxFit.cover,
+            opacity: 0.08,
+          ),
+        ),
+        child: Center(
           child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
                   Icons.lock_outline,
-                  size: 80,
+                  size: 72,
                   color: Colors.deepPurple,
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _username,
                   decoration: const InputDecoration(
@@ -86,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _password,
                   obscureText: true,
@@ -100,14 +111,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _loading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
                     child:
                         _loading
                             ? const CircularProgressIndicator(
                               color: Colors.white,
-                              strokeWidth: 2,
                             )
                             : const Text('تسجيل الدخول'),
                   ),
@@ -120,11 +127,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       MaterialPageRoute(builder: (_) => const RegisterScreen()),
                     );
                   },
-                  child: const Text('إنشاء حساب جديد'),
+                  child: const Text('ليس لديك حساب؟ إنشاء حساب جديد'),
                 ),
                 if (_error != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.only(top: 12),
                     child: Text(
                       _error!,
                       style: const TextStyle(color: Colors.red),
