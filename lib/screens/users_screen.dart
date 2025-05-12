@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../core/config/app_config.dart'; // لازم يكون فيه AppConfig.apiUrl
+import 'package:chat_app_clean/core/config/app_config.dart'; // لازم يكون فيه AppConfig.apiUrl
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
