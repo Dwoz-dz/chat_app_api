@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // تم التبديل من bcrypt إلى bcryptjs
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
